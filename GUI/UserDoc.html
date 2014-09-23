@@ -1,0 +1,339 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>3D Printer Program User Documentation</title>
+</head>
+<body>
+    <h1>Table of Contents</h1>
+
+    <p><a href="#Force Sensor">Force Sensor</a></p>
+
+    <p><a href="#Z-Stage">Z-Stage</a></p>
+
+    <p><a href="#Voltmeter">Voltmeter</a></p>
+
+    <p><a href="#XYZ-Stage">XYZ-Stage</a></p>
+
+    <p><a href="#Printing">Printing Process</a></p>
+
+    <p><a href="#Tracking">Z-Stage Tracking</a></p>
+
+    <img src="Resources\mainGUI.png" />
+
+    <a name="Force Sensor"><h1>Force Sensor</h1></a>
+
+    <img src="Resources\forceGauge.png" />
+
+    <p>
+        The Futek force sensor is a critical component of the printing process. It's primary purpose is to
+        monitor the force applied to its guage to determine when to stop the Z-Stage from moving up during
+        a printing operation.
+    </p>
+    <p>
+        The force sensor is the first component required to be connected - without it, neither the Z-Stage
+        or Voltmeter can be connected. To connect to the force sensor, click the Force Sensor menu item
+        and navigate to Enabled. Click On to begin the connection process. The force sensor will 
+        automatically scan your USB ports for any connected sensor. If found, it will automatically
+        supply the serial number for that particular sensor. If more than one sensor are connected,
+        it will return the serial number of the sensor connected to the COM port with the lowest 
+        number (ie, COM1). 
+    </p>
+    <p>
+        If the provided serial number is not the correct one, the user can change the serial number before
+        clicking the OK button. Once clicked, the connection process will begin and the feedback box will
+        display all connection data. Once connected, the force reading will update automatically on the main
+        user interface screen. It will, by default, be set to display its gross value - so it may not
+        display 0g. To set the current value to 0g, navigate to the force sensor menu item and check
+        Tare. This will tell the force sensor to use its current value as the 0 setting, and any 
+        force applied will be checked against that tared value. 
+    </p>
+    <p>
+        The force sensor will, by default, have its "stop value" set to 0.002g. The stop value is the 
+        force value the program will use to determine when to stop the Z-Stage from moving during a 
+        print operation. When the force sensor detects the stop value, it will fire an event that will
+        automatically stop the Z-Stage from moving and finish the current print operation. To change the
+        stop value at any time, there is a text box below the force value display, along with a button. 
+        Input your new force stop value (in grams) here, and click the button to change the stop value.
+    </p>
+    <a name="Z-Stage"><h1>Z-Stage</h1></a>
+
+    <img src="Resources\ZStage.png" />
+    <p>
+        The Z-Stage is a small stage that moves up or down, and is the primary component of the printing
+        process. The Z-Stage has a travel range of 120 microns. By design, the Z-Stage moves to positions
+        immediately - with their software, telling it to move to 120 microns from its starting position
+        would be one "move" operation. This is not sufficient for the printing process. Instead, this program
+        will simulate steady, controlled movement for the Z-Stage. To faciliate this, the program requires 
+        a "step size" and a "speed" that the user will determine.
+    </p>
+    <p>
+        To connect to the Z-Stage, click the Z-Stage menu item and navigate to Enabled. Click the On
+        menu item. This will automatically begin the Z-Stage connection process - no input from the user is
+        required, as the program will automatically detect the Z-Stage if it is connected to a USB port.
+        Once connected, the user is free to manually move the Z-Stage up or down with the two Up or Down
+        arrow buttons, or with the Move To Position input text box. The former method will move the Z-Stage
+        in the desired direction at one "step" per click, by default. A step is roughly equivalent to a micron -
+        therefore, clicking the Up arrow will move the Z-Stage up one micron, and vice versa for the Down arrow.
+        The latter method will move the Z-Stage to the input position - the user types in the desired position into
+        the text box, and clicks the green check mark next to it. If the position is valid (within the min and max 
+        range of the Z-Stage, which is 0 and 105 respectively), the Z-Stage will automatically move to that position.
+    </p>
+    <p>
+        By default, the click-move method will adhere to the force sensor stop value - it will not allow the user to manually
+        move the Z-Stage beyond the stop value. The Move-To position method, however, will, by default, ignore the stop value
+        and simply move the Z-Stage to the user-input position regardless of what force reading it detects. To also
+        ignore the sensor during the click-move method, navigate to the Z-Stage menu item, click Settings, and then
+        click the Ignore Sensor menu item. Now, during manual move, it will ignore the force sensor reading and move the 
+        Z-Stage regardless of the stop value.
+    </p>
+    <p>
+        To prepare the Z-Stage for the printing process, the Z-Stage must first be calibrated. Calibration will
+        determine a rough "go to position" for the Z-Stage - the position the Z-Stage detects the stop value at. 
+        To begin calibration, click the Z-Stage menu item and then the Calibrate menu item. This will open a new
+        form that will handle the calibration process. On the main form, the user is only required to input
+        a stop value and the starting position for the Z-Stage - both these will be filled in with default values,
+        but the user is allowed to change them. To begin the process, the user must first click the Phase Settings
+        button, which will take them to a separate form with input boxes for each setting for each stage of calibration.
+    </p>
+    <img src="Resources\calibration.png" />
+    <p>
+        Calibration is broken into four stages - Phases One through Four. Each phase can have a different
+        step size, speed, and offset, allowing the user to measure the Z-Stage's ending position at the time
+        the stop value is detected with different settings for the Z-Stage, to find a more "accurate" go-to position.
+        It is generally a better idea to start with larger step sizes and speeds and reduce the step size, offset and speed
+        with each subsequent phase. This will allow the earlier stages to find the go-to position quicker, and then to
+        fine-tune the result with slower speeds at a smaller offset at the end. A larger step size and faster speed will
+        result in less accurate results - it will often "overshoot" the stop value, giving a position that goes too far.
+        A smaller offset, however, can also result in false triggers. 
+    </p>
+    <p>
+        Each phase of calibration works as so: first, the Z-Stage will automatically move to a pre-determined position. 
+        For phase one, it will jump to the starting position as determined in the main calibration form. For phases two
+        through four, it will automatically jump the Z-Stage to the "go to position" - the position the Z-Stage 
+        detected the stop value at minus the offset. Therefore, the offset must be input in the amount of microns
+        you wish the Z-Stage to subtract from the force detected position. Once it jumps to the "go to position" 
+        (or starting position for phase 1), it will then move the Z-Stage up by one step (as determined by user-input 
+        step size, which is in microns) per speed setting (as determined by user-input speed, which is in milliseconds). 
+        It will check the force value at each move operation. If it is at or exceeds the stop value, it will record the
+        position of the Z-Stage at time of detection and create a go-to position by substracting the offset from
+        that force detected position. On the next phase, it will jump the Z-Stage to that go-to position and resume
+        the process, ideally at a smaller step-size and slower speed. If the offset is too small, the Z-Stage runs the
+        risk of triggering the stop value prematurely. Too large, and it will take a long time for smaller step-sizes and
+        speeds to detect the stop value. Regardless, once phase 4 is finished, it will record the go-to position and 
+        finish calibration. The user then has the choice of accepting the calibration results or cancelling, which will
+        reset the entire process and allow the user to re-do calibration.
+    </p>
+    <p>
+        There is a final menu item for the Z-Stage: Positions Found, which is located under the Settings menu for 
+        the Z-Stage. This form will display the positions the Z-Stage detected the force stop value during
+        calibration, along with the speed, step size and offset used for those phases of calibration.
+    </p>
+    <p>
+        Once calibration is accepted, the user can connect to the Voltmeter. The voltmeter will watch for the 
+        change in voltage from the 3D printer relay, which will trigger the printing process to begin. However, the user
+        can also manually print by clicking Manual Print. The program will ask the user how many times to manually
+        print, and the program will run a print operation as many times as the user selects. The user can also change
+        Z-Stage settings under the Z-Stage Settings menu item. Here, the user can change step size, speed, offset,
+        and other settings related to printing. More detail will be given on these settings in the Printing section
+        of this tutorial.
+    </p>
+    <a name="Voltmeter"><h1>Voltmeter</h1></a>
+    <img src="Resources\voltmeter.png" />
+    <p>
+        The Voltmeter measures the voltage from the 3D printer relay. Its purpose is to
+        tell the program when to begin a printing operation - a positive change in voltage exceeding the
+        user-determined voltage change-value will trigger the printing process to begin. The Voltmeter
+        can only be connected once the Z-Stage has finished calibration and the user has accepted the
+        calibration values. This is to prevent the Voltmeter from triggering the print process before
+        the Z-Stage has properly been calibrated.
+    </p>
+    <p>
+        To connect to the Voltmeter, simply click the Voltmeter menu item, click Enabled and then On. 
+        The program will automatically detect the Voltmeter if it's connected to a USB port, and automatically
+        establish a connection without any input from the user. The voltage value is displayed in red at the 
+        bottom left of the main user interface screen. By default, the voltage change value is set to 1. 
+        This means that if the voltage value changes by 1 (ie, 0 to 1, or 4 to 5), it will trigger the
+        printing process. The user can alter this value by clicking the Voltmeter menu item, 
+        then navigating to the Voltage Change menu item. Here the user can input a new value for the 
+        Voltmeter to detect. The change value must be greater than 0. If the user sets it to 5, the
+        printing process will only trigger if the voltmeter experiences a positive change of 5 or greater 
+        (ie, 0 to 5 or 50 to 55). It will not trigger on a negative change - ie, 5 to 0. 
+    </p>
+    <a name="XYZ-Stage"><h1>XYZ-Stage</h1></a>
+    <img src="Resources\xyzStage.png" />
+    <p>
+        The XYZ-Stage is another stage that can be used for the printing process. It is inaccurate compared to the Z-Stage,
+        as it is prone to hysteresis and relies on friction to move its motors. There are six motors in all, each one 
+        connected to one of three drivers. The drivers are in turn connected to one parent driver, which is connected
+        to the computer via a serial-to-USB converter. The XYZ-Stage can move in any direction, unlike the Z-Stage,
+        but it does not remember the positions of its motors - while the Z-Stage will retain its current position, even
+        after disconnecting and reconnecting, the XYZ-Stage will forget the position of each motor if you disconnect it.
+        The program itself defines only drivers and channels (which correspond to the motors). However, it does not know
+        which driver is actually connected to which physical driver, nor which physical motors are connected to
+        the physical driver. Thus, it is recommended to label each physical driver and motor to correspond
+        to the ambigious designations on the XYZ-Stage control panel - Drivers A to C, and channels A to C for
+        each driver.
+    </p>
+    <p>
+        Connecting to the XYZ-Stage does not depend on any other hardware being connected, and thus can be connected
+        independently of the other components. To connect, simply click the XYZ-Stage menu item and click
+        Display. This will open a dialog box which will ask the user which COM Port the XYZ-Stage is connected to.
+        The user must know beforehand what COM port the XYZ-Stage is connected to (COM1, COM2, ..., COM9, etc). 
+        Once connected, the XYZ-Stage will perform a small calibration test to determine its drivers and
+        motors are working correctly. It will then take the user to the XYZ-Stage control panel.
+    </p>
+    <img src="Resources\xyzStageGUI.png" />
+    <p>
+        The panel itself is divided into three separate but identical panels - one for each of the three physical drivers. 
+        Not all have to be connected to operate the XYZ-Stage - a driver can only control three motors (channels), 
+        and only one at a time, and since  there are six motors in all, you only need to activate the driver that is
+        controlling the motor you wish to move. However, to move the XYZ-Stage up or down in one linear fashion, each
+        driver will have to be activated and added to the group - since a driver can only move one motor at a time,
+        you will need the three motors responsible for Z movement connected to one driver each. Each driver will have to
+        be added to the group, and the group move button will then cause all three drivers to move their respective motor
+        at the same time (assuming that the channels you activated for that driver correspond to the Z axis motor). 
+    </p>
+    <p>
+        Since a driver can only control one motor at a time, before you can enable a driver you have to select a channel
+        for that driver, A, B or C. However, since there are six motors (or six channels), but up to nine channels on the
+        software, some channels will be inactive - that is, activating that channel will do nothing as that channel 
+        on that driver is not connected to a physical motor. Thus it is best to ensure you properly label the physical motors
+        to tell which channel is corresponding to which motor on which driver. Once you have selected the proper channel
+        and enabled the driver, it will open a new panel under that driver control with all the controls needed for
+        operating the driver. 
+    </p>
+    <p>
+        There are two movement modes for each driver - position or velocity mode. Position mode will move that driver's
+        motor to the input position. Speed and acceleration values are required before a move can be initiated. The user
+        also has the choice of choosing Abrupt or Smooth stop modes. The position of that driver/motor will be reported
+        in the bottom right corner of the control panel. Velocity mode does not move the motor to an input position - instead, 
+        it depends on the right or left arrow buttons (which appear when velocity mode is engaged). The motor will move
+        as long as the user is holding down on the arrow, and the position will update accordingly in the bottom-right.
+    </p>
+    <p>
+        Adding the connected driver to a group will add that driver to the group control box at the bottom of the screen.
+        Group mode will move all the added drivers in one single movement - however, that driver must be set to
+        Position mode before the group can be moved, as group mode requires position data. Each driver must have position, 
+        speed and acceleration data input before the group can be moved. However, each driver can have their own trajectory
+        data - when the group moves, each driver will stop at their own position, so one driver can continue moving
+        even as the others in the group stop, and at their own speed and acceleration. Group leader is not an important
+        feature, but it is required for the group to move - any of the added drivers can be chosen as the leader, but it will
+        not actually affect the move operation. 
+    </p>
+    <p>
+        Remember that the XYZ-Stage cannot remember position data. Once you exit the program, the positions of each
+        motor will be forgotten. Restarting the program will display the position of each driver as 0, regardless of 
+        where they actually are on the physical hardware.
+    </p>
+    <p>
+        Important Note: Each driver MUST have one physical motor connected to its Channel A slot in order for
+        the XYZ-Stage to work.
+    </p>
+    <a name="Printing"><h1>Printing Process</h1></a>
+    <p>
+        The printing process the primary focus of this program - to automatically engage the printing process
+        for the 3D printer with minimal user input. Upon detecting the proper voltage change, the Z-Stage will
+        automatically move up until it detects the stop value, whereupon it will stop and allow the ink to dwell. 
+        When it finishes dwelling, it will return to its starting position and repeat at the next 
+        voltage trigger. 
+    </p>
+    <p>
+        The printing process can only begin if the force sensor is connected, the Z-Stage has finished calibration, and
+        if the Voltmeter is connected. The settings for the Z-Stage can be altered in the Z-Stage menu item panel, under 
+        the Settings Panel item. Here, the user has many settings to choose and alter.
+    </p>
+    <img src="Resources\zStageSettings.png" />
+    <p>
+        Step Size: The change in position with very move for the Z-Stage. This is measured approximately in a 1:1 ratio
+        in microns. So a step size of 1 will move the Z-Stage up or down 1 micron with every successful move.  
+    </p>
+    <p>
+        Speed: The amount of time between each move for the Z-Stage, in milliseconds. A speed of 1000 will pause the Z-Stage
+        1 second every time it makes a move (the size of the move determined by the step size).
+    </p>
+    <p>
+        Offset: The amount of microns to offset the Z-Stage's force detected position to determine a go-to position. 
+        It operates the same way as in calibration mode. During printing, if Force-Limited mode is engaged, the Z-Stage
+        will typically detect the stop value at different positions for each print operation. This is a result of 
+        many factors - the force sensor is very sensitive, and the Z-Stage is not moving with perfect accuracy. Thus, the
+        force detected position will often be different between prints. To accomodate this, the go-to position is 
+        automatically changed every print (if Force-Limited mode is on). To determine the go-to position, the offset
+        is required. The formula for the go-to position is force detected position minus the offset. In print 1, 
+        the go-to position is 30, as determined by the final phase of calibration. The offset is set to 3. Thus, the force
+        detected position was 33. During the print, the Z-Stage will automatically move to position 30 and then begin
+        moving to position 33 at its step size and speed. It detects the stop value at position 34, dwells, and then
+        calculates the new go-to position as 31 (34 minus 3). 
+    </p>
+    <p>
+        Dwell Time: The amount of time, in milliseconds, that the Z-Stage pauses when it detects the stop value. This is to
+        give the ink time to dwell on the surface. The Z-Stage will remain at the position it detected the force stop
+        value for as many seconds as input in the dwell time, and then return to its go-to position upon completion.
+    </p>
+    <p>
+        Print Go-To Position: Although the go-to position is automatically determined by the program, the user is given
+        the option of manually determining the go-to position for one print operation. This is generally not recommended, but is
+        there if needed. After changing the go-to position, the program will go to that position for the next print, but
+        at the completion of that print, it will generate a new go-to position automatically.
+    </p>
+    <p>
+        Print Stop Mode: There are two options to select - Force-Limited and Position-Limited modes. Force-Limited mode
+        will stop the Z-Stage from moving during a print when the stop value is detected. Position-limited mode, however,
+        will stop the Z-Stage at the previous force-detected position, regardless of the stop value. 
+    </p>
+    <p>
+        Print Return Mode: There are two options to select - Jump-Down and Step-Down modes. Jump-Down mode 
+        will automatically return the Z-Stage to its go-to position after dwelling. Step-down mode, however, will
+        return the Z-Stage to either the go-to position or to position zero in steps. The step-down size and the
+        return speed are both determined by the user in the Print Return Step and Print Return Speed 
+        boxes.
+    </p>
+    <p>
+        Print Return Step Size: This input box is there to set the step size of the Z-Stage during Step-Down mode
+        as the Z-Stage is returning after dwelling. 
+    </p>
+    <p>
+        Print Return Speed: This input box is there to set the speed, in milliseconds, of the Z-Stage during Step-Down mode
+        as the Z-Stage is returning after dwelling.
+    </p>
+    <p>
+        Slow Down?: This check box is a special mode for the Z-Stage. It works by slowing the Z-Stage down during
+        a print as it approaches the stop value. When the program detects a value 0.0005g less than the stop value,
+        it will trigger the slow-down mode. It will set the Z-Stage's step size to the Slow-Down step size, which is
+        input into the input box next to the Slow-Down mode check box. The Z-Stage will then continue moving to
+        the stop value, but at this new step size. The speed will remain the same. This mode cannot be activated 
+        if the Position-Limited mode is engaged, as the Position-Limited mode does not rely on the force stop value
+        to determine when to stop the Z-Stage.
+    </p>
+    <a name="Tracking"><h1>Z-Stage Tracking</h1></a>
+    <img src="Resources\trackingmode.png" />
+    <p>
+        Z-Stage Tracking is a special mode that can be enabled once Z-Stage calibration has finished and the Voltmeter is connected.
+        To access it, navigate to the Z-Stage menu item and click Trading Mode. This will take the user to a new form
+        specifically geared to Tracking.
+    </p>
+    <p>
+        Tracking mode is simple - it will trigger a Z-Stage "print" operation every time it detects the voltage change, 
+        and then record the position it detects the stop value at. The user can keep tracking mode on as long as needed - it will
+        continue to record position and force data as many times as the voltage is detected. Unlike a print operation, settings
+        such as Position-Limited, Slow-Down, and Step-Down are ignored; it simply moves the Z-Stage until it detects the stop value,
+        records the position it reached and the force value, and then repeats on the next voltage trigger. Nothing will
+        happen until the user clicks the Begin Tracking button - if this button is not clicked, even a voltage trigger
+        will not cause anything to happen.
+    </p>
+    <p>
+        Once the user is finished, they can click Stop Tracking, which will end the tracking process. The user then has the 
+        option of clicking the Export Data button. This will open a Save File dialog. What this will do is save a spreadsheet
+        to the user's local file system. This spreadsheet will contain all the positions found during the tracking process,
+        along with the force value at that position.
+    </p>
+    <p>
+        This mode is designed to test surfaces - the user will have to program the 3D printer software with a special
+        pattern, moving the printing arm in 10 micron increments and then triggering the relay to send the voltage
+        to this program. The Z-Stage will then move up and detect the stop value at a certain position. Since the 3D printer
+        arm is moving in 10 micron increments, the user can map out a surface by recording the position and force 10 microns
+        apart.
+    </p>
+</body>
+</html>
