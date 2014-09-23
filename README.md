@@ -1,9 +1,11 @@
 3D_Printer
+
 ==========
 
 Version 1.0 of Force Feedback System for 3D Printer
 
 Overview of Project
+
 ==========
 
 This project is intended for use with the College of Staten Island's 3D Printer in the 6S building. It is designed to work 
@@ -17,10 +19,15 @@ The project was written in C# with .NET 4.5 Framework under Visual Studio 2013. 
 printing process and provide the user with an easy-to-use user interface for controlling the print process. 
 
 The hardware involved are:
+
 Microplotter (http://vergentaindia.com/pdf/catalog1.pdf)
+
 Multi-Axis Piezo Alignment Stage (http://search.newport.com/?q=*&x2=sku&q2=8095)
+
 Piezo Z Stage (http://www.physikinstrumente.com/product-detail-page/p-611z-201731.html)
+
 Tension and Compress Load Cell (http://www.futek.com/product.aspx?stock=FSH00259)
+
 USB voltmeter (http://www.digital-measure.com/html/voltmeter.htm)
 
 The printing process requires the Z-Stage placed on the multi-axis stage underneath the microplotter's "arm", which will move 
@@ -52,7 +59,9 @@ the force values found during the duration of the tracking. This data can be use
 a given substrate placed on the Z-Stage - the substrate on which the ink is dispensed. 
 
 Project Structure
+
 ==========
+
 3D_Printer/ForceSensor
 Contains Controller.cs which contains all logic specific to operation of the force gauge - connection/disconnection, reading
 in force values, and changing settings (tare/gross).
