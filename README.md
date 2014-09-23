@@ -7,7 +7,7 @@ Overview of Project
 ==========
 
 This project is intended for use with the College of Staten Island's 3D Printer in the 6S building. It is designed to work 
-solely with the hardware in Dr. Alan Lyon's research lab. The purpose of this program is to faciliate the automation of the
+solely with the hardware in Dr. Alan Lyon's research lab. The purpose of this program is to facilitate the automation of the
 3D printing process.
 
 For information pertaining to the 3D printing research project as a whole, refer to Dr. Lyon's research page:
@@ -33,14 +33,14 @@ down to dispense the ink. The load cell (or the force gauge) is attached to this
 cylinder where the printing tips are held. These tips are dipped in the ink, then brought over to a position above the Z-Stage. 
 The microplotter detects when it is in position and ready to begin the print - it triggers its relay to turn on, sending a 
 voltage which is detected by the voltmeter. This voltmeter tells this program to begin the printing process - when the printing 
-process begins,the Z-Stage begins moving up (in microns). The user tells this program which value to watch for from the force
+process begins, the Z-Stage begins moving up (in microns). The user tells this program which value to watch for from the force
 gauge (typically 2 milligrams). When the Z-Stage begins to make contact with the tips, the force is detected and monitored. When
 it reaches 2 milligrams, the program tells the Z-Stage to stop moving and allow the ink to dwell for a preset amount of time.
 When the dwell time is finished, the program returns the Z-Stage to its default position and the microplotter returns to 
 retrieve more ink as per its printing pattern (defined by the user). The multi-axis stage is there to provide different angles 
 should the user require them.
 
-Thus, this prorgam is responsible for contrlling the multi-axis stage, the Z-Stage, the force gauge, and the USB voltmeter,
+Thus, this prorgam is responsible for controlling the multi-axis stage, the Z-Stage, the force gauge, and the USB voltmeter,
 and automating the printing process. Once the program is running and all hardware connected, all the user needs to do is 
 proceed with calibration (to determine speed and position settings for the Z-Stage) and then turn the voltmeter on through
 the user interface. Once calibration is finished and the voltmeter on, the program will scan for change in voltage. The 
@@ -74,13 +74,13 @@ Contains Controller.cs which contains all logic specific to operation of the vol
 in voltage values.
 
 3D_Printer/XYZStage
-Contains Controller.cs and Ldcnlib.cs. Controller.cs contians all logic specific to the multi-axis stage and its drivers. 
+Contains Controller.cs and Ldcnlib.cs. Controller.cs contains all logic specific to the multi-axis stage and its drivers. 
 Connecting to and disconnecting from the stage and each specific driver and all functions to move and group the drivers. 
 Ldcnlib.cs is the COM Interop file to reveal the functions in the Ldcnlib.dll file, a COM assembly provided by the stage's 
 manufacturer. 
 
 3D_Printer/ZStage
-Contains Controller.cs and E816.cs. Controller.cs contains all logic specfic to the Z-Stage: connecting to and disconnecting
+Contains Controller.cs and E816.cs. Controller.cs contains all logic specific to the Z-Stage: connecting to and disconnecting
 from the stage and moving the stage. E816.cs is the COM Interop file to reveal the functions in the E816_DLL.dll, a COM assembly
 provided by the stage's manufacturer.
 
