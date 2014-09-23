@@ -1,11 +1,9 @@
 3D_Printer
-
 ==========
 
 Version 1.0 of Force Feedback System for 3D Printer
 
 Overview of Project
-
 ==========
 
 This project is intended for use with the College of Staten Island's 3D Printer in the 6S building. It is designed to work 
@@ -59,7 +57,6 @@ the force values found during the duration of the tracking. This data can be use
 a given substrate placed on the Z-Stage - the substrate on which the ink is dispensed. 
 
 Project Structure
-
 ==========
 
 3D_Printer/ForceSensor
