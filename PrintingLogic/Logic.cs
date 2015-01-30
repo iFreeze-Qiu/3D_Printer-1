@@ -755,8 +755,12 @@ namespace PrintingLogic
 
             #endregion
 
+            #region Event Wiring Region
+
             ForceDetectedDuringCalibration += item_ForceDetected;
             MaxHeightReachedDuringCalibration += item_MaxHeightReachedDuringCalibration;
+
+            #endregion
         }
 
         #endregion
@@ -1747,10 +1751,6 @@ namespace PrintingLogic
         /// <param name="e"></param>
         public void Print(BackgroundWorker worker, DoWorkEventArgs e)
         {
-            double position;
-            double sensorValue;
-            bool slowedDown = false;
-
             UpdateFeedback(this, new UpdateFeedbackEventArgs(
                 "\nPrinting...\n"));
 
@@ -1762,7 +1762,18 @@ namespace PrintingLogic
             // value.
             MoveZStageToPosition(goToPosition);
 
+            PrintLoop(worker, e);
+        }
+
+        private void PrintLoop(BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            bool slowedDown = false;
+            double sensorValue;
+            double position;
+
             sensorValue = Math.Round(forceSensorController.UpdateSensor(), RoundForceSensorValueTo);
+
+            #region Main Print Loop
 
             // This process will continue to run while the Z-Stage
             // is allowed to move up. The PrintLoopCheck will return
@@ -1794,68 +1805,15 @@ namespace PrintingLogic
 
                     OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
 
-                    if (printSlowDown == true && slowedDown == false)
-                    {
-                        if (sensorValue >= (stopValue - PrintSlowDownOffset) && 
-                            sensorValue < stopValue)
-                        {
-                            UpdateFeedback(this, 
-                                new UpdateFeedbackEventArgs("Slowing Z-Stage to " +
-                                printingSlowDownStepSize.ToString() + "steps."));
+                    // Handle print slow down operation
+                    PrintHandleSlowDown(ref slowedDown, sensorValue);
 
-                            zStageController.StepSize = printingSlowDownStepSize;
-
-                            slowedDown = true;
-                        }
-                    }
-
-                    if (position + zStageController.StepSize > ZStage.Controller.MaxHeight)
-                    {
-                        maxHeightReachedDuringPrinting = true;
-                        OnMaxHeightReachedDuringPrinting();
+                    // Handle Z-Stage reaching max height
+                    if (PrintReachedMaxHeight(position))
                         break;
-                    }
 
-                    // If the Z-Stage's next move would put it beyond or
-                    // equal to the force detected position, move it to the
-                    // force detected position instead.  Otherwise, 
-                    // move to the next position.
-                    if (position + zStageController.StepSize >= forceDetectedPosition
-                        && printStopMode == PrintStopMode.Position)
-                    {
-                        MoveZStageToPosition(forceDetectedPosition);
-
-                        position = zStageController.Position();
-                        sensorValue = Math.Round(forceSensorController.UpdateSensor(), RoundForceSensorValueTo);
-
-                        OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
+                    if (!PrintHandleEndOfStep(ref position, ref sensorValue))
                         break;
-                    }
-                    else if (sensorValue < stopValue
-                        && printStopMode == PrintStopMode.Force)
-                    {
-                        MoveZStageToPosition(position + zStageController.StepSize);
-                    }
-                    else if (sensorValue >= stopValue 
-                        && printStopMode == PrintStopMode.Force)
-                    {
-                        position = zStageController.Position();
-                        sensorValue = 
-                            Math.Round(forceSensorController.UpdateSensor(), RoundForceSensorValueTo);
-                        forceDetectedPosition = position;
-                        goToPosition = forceDetectedPosition - offset;
-
-                        if (goToPosition < ZStage.Controller.MinHeight)
-                            goToPosition = ZStage.Controller.MinHeight;
-
-                        OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
-
-                        break;
-                    }
-                    else
-                    {
-                        MoveZStageToPosition(position + zStageController.StepSize);
-                    }
 
                     // Update the position and sensor values on the GUI
                     // layer.
@@ -1864,12 +1822,108 @@ namespace PrintingLogic
 
                     OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
 
+                    // If sensor value has exceeded the stop value, end the loop.
                     if (sensorValue >= stopValue && printStopMode == PrintStopMode.Force)
                     {
                         break;
                     }
                 }
             }
+
+            #endregion
+        }
+
+        /// <summary>
+        /// This function will handle the slow down operation for Z-Stage printing
+        /// if it is enabled by the user.
+        /// </summary>
+        /// <param name="slowedDown"></param>
+        /// <param name="sensorValue"></param>
+        private void PrintHandleSlowDown(ref bool slowedDown, double sensorValue)
+        {
+            if (printSlowDown == true && slowedDown == false)
+            {
+                if (sensorValue >= (stopValue - PrintSlowDownOffset) &&
+                    sensorValue < stopValue)
+                {
+                    UpdateFeedback(this,
+                        new UpdateFeedbackEventArgs("Slowing Z-Stage to " +
+                        printingSlowDownStepSize.ToString() + "steps."));
+
+                    zStageController.StepSize = printingSlowDownStepSize;
+
+                    slowedDown = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This function will stop the print loop if the stage has reached its maximum
+        /// height.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        private bool PrintReachedMaxHeight(double position)
+        {
+            if (position + zStageController.StepSize > ZStage.Controller.MaxHeight)
+            {
+                maxHeightReachedDuringPrinting = true;
+                OnMaxHeightReachedDuringPrinting();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This function will handle the final stage of the print loop - 
+        /// it ensures the stage doesn't exceed its final position in 
+        /// position mode or the sensor value in force mode.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="sensorValue"></param>
+        /// <returns></returns>
+        private bool PrintHandleEndOfStep(ref double position, ref double sensorValue)
+        {
+            // If the Z-Stage is in Position mode and the next move would put 
+            // it beyond or equal to the force detected position, move it to the
+            // force detected position instead and cancel the loop. 
+            // If the Z-Stage is in Force mode and the force value has been
+            // reached or exceeded, record the position of the force detection
+            // and the new goToPosition and then cancel the loop.
+            // If neither event has occurred, simply move the Z-Stage to the next
+            // step and continue the loop.
+            if (position + zStageController.StepSize >= forceDetectedPosition
+                && printStopMode == PrintStopMode.Position)
+            {
+                MoveZStageToPosition(forceDetectedPosition);
+
+                position = zStageController.Position();
+                sensorValue = Math.Round(forceSensorController.UpdateSensor(), RoundForceSensorValueTo);
+
+                OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
+                return false;
+            }
+            else if (sensorValue >= stopValue
+                && printStopMode == PrintStopMode.Force)
+            {
+                position = zStageController.Position();
+                sensorValue =
+                    Math.Round(forceSensorController.UpdateSensor(), RoundForceSensorValueTo);
+                forceDetectedPosition = position;
+                goToPosition = forceDetectedPosition - offset;
+
+                if (goToPosition < ZStage.Controller.MinHeight)
+                    goToPosition = ZStage.Controller.MinHeight;
+
+                OnSensorUpdated(new UpdateFeedbackEventArgs(sensorValue.ToString()));
+
+                return false;
+            }
+
+            MoveZStageToPosition(position + zStageController.StepSize);
+
+            return true;
         }
 
         /// <summary>

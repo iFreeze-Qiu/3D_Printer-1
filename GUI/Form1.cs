@@ -31,13 +31,23 @@ namespace GUI
     {
         #region Field Region
 
+        // all printing logic contained in this class
         private Logic logic;
+
+        // form for XYZStage controls and data
         private XYZStageControlPanelForm xyzStageForm;
 
+        // true or false is user manually cancelled the print operation
         private bool userCancelledPrint;
+
+        // true or false whether manual print mode has been engaged
         private bool manualPrint;
+
+        // number of manual prints to execute
         private int printAmount;
 
+        // soundPlayer will notify user with a short sound to indicate when
+        // the force detection value has been reached
         private SoundPlayer soundPlayer =
             new SoundPlayer(global::GUI.Properties.Resources.tada);
 
@@ -50,13 +60,7 @@ namespace GUI
         /// </summary>
         public FormMain()
         {
-            #region Component Region
-
             InitializeComponent();
-
-            #endregion
-
-            #region Class Instantiation Region
 
             // Logic class handles all interaction with hardware
             logic = new Logic();
@@ -64,8 +68,6 @@ namespace GUI
             // XYZStageControlPanelForm is a child form of FormMain
             // that gives user control over XYZ-Stage positioning
             xyzStageForm = new XYZStageControlPanelForm(logic);
-
-            #endregion
 
             #region Form Event Wiring Region
 
@@ -88,9 +90,12 @@ namespace GUI
 
             // zStagePrintBackgroundWorker handles the processing of 
             // the Z-Stage printing process
-            zStagePrintBackgroundWorker.DoWork += new DoWorkEventHandler(zStagePrintBackgroundWorker_DoWork);
+            zStagePrintBackgroundWorker.DoWork +=
+                new DoWorkEventHandler(zStagePrintBackgroundWorker_DoWork);
+
             zStagePrintBackgroundWorker.RunWorkerCompleted +=
                 new RunWorkerCompletedEventHandler(zStagePrintBackgroundWorker_RunWorkerCompleted);
+
             zStagePrintBackgroundWorker.WorkerSupportsCancellation = true;
 
             #endregion
@@ -259,29 +264,7 @@ namespace GUI
             zStageCancelPrintButton.Invoke(new Action(() =>
                 zStageCancelPrintButton.Enabled = true));
 
-            zStageResetButton.Invoke(new Action(() =>
-                zStageResetButton.Enabled = false));
-
-            zStageMoveUpButton.Invoke(new Action(() =>
-                zStageMoveUpButton.Enabled = false));
-
-            zStageMoveDownButton.Invoke(new Action(() =>
-                zStageMoveDownButton.Enabled = false));
-
-            zStageManualPrintButton.Invoke(new Action(() =>
-                zStageManualPrintButton.Enabled = false));
-
-            menuStrip1.Invoke(new Action(() =>
-                zStageToolStripMenuItem.Enabled = false));
-
-            menuStrip1.Invoke(new Action(() =>
-                forceSensorToolStripMenuItem.Enabled = false));
-
-            menuStrip1.Invoke(new Action(() =>
-                voltmeterToolStripMenuItem.Enabled = false));
-
-            menuStrip1.Invoke(new Action(() =>
-                xyzStageToolStripMenuItem.Enabled = false));
+            zStagePrintBackgroundWorker_ChangeControls(false);
 
             logic.Print(worker, e);
         }
@@ -309,29 +292,7 @@ namespace GUI
             zStageCancelPrintButton.Invoke(new Action(() =>
                 zStageCancelPrintButton.Enabled = false));
 
-            zStageMoveUpButton.Invoke(new Action(() =>
-                zStageMoveUpButton.Enabled = true));
-
-            zStageMoveDownButton.Invoke(new Action(() =>
-                zStageMoveDownButton.Enabled = true));
-
-            zStageResetButton.Invoke(new Action(() =>
-                zStageResetButton.Enabled = true));
-
-            zStageManualPrintButton.Invoke(new Action(() =>
-                zStageManualPrintButton.Enabled = true));
-
-            menuStrip1.Invoke(new Action(() =>
-                zStageToolStripMenuItem.Enabled = true));
-
-            menuStrip1.Invoke(new Action(() =>
-                forceSensorToolStripMenuItem.Enabled = true));
-
-            menuStrip1.Invoke(new Action(() =>
-                voltmeterToolStripMenuItem.Enabled = true));
-
-            menuStrip1.Invoke(new Action(() =>
-                xyzStageToolStripMenuItem.Enabled = true));
+            zStagePrintBackgroundWorker_ChangeControls(true);
 
             if (logic.IsVoltageDetected == true)
                 logic.IsVoltageDetected = false;
@@ -344,13 +305,45 @@ namespace GUI
 
             // Repeat printing if manual print mode is on and
             // there's still prints left to finish
-
             if (manualPrint == true && printAmount > 0)
             { 
                 zStagePrintBackgroundWorker.RunWorkerAsync();
             }
             else if (manualPrint == true && printAmount <= 0)
                 manualPrint = false;
+        }
+
+        /// <summary> 
+        /// Disable the controls related to the Z-Stage to prevent
+        /// any interference during a print operation if isFinished 
+        /// is false; enable the controls if isFinished is true
+        /// </summary>
+        /// <param name="isFinished"></param>
+        void zStagePrintBackgroundWorker_ChangeControls(bool isFinished)
+        {
+            zStageResetButton.Invoke(new Action(() =>
+                zStageResetButton.Enabled = isFinished));
+
+            zStageMoveUpButton.Invoke(new Action(() =>
+                zStageMoveUpButton.Enabled = isFinished));
+
+            zStageMoveDownButton.Invoke(new Action(() =>
+                zStageMoveDownButton.Enabled = isFinished));
+
+            zStageManualPrintButton.Invoke(new Action(() =>
+                zStageManualPrintButton.Enabled = isFinished));
+
+            menuStrip1.Invoke(new Action(() =>
+                zStageToolStripMenuItem.Enabled = isFinished));
+
+            menuStrip1.Invoke(new Action(() =>
+                forceSensorToolStripMenuItem.Enabled = isFinished));
+
+            menuStrip1.Invoke(new Action(() =>
+                voltmeterToolStripMenuItem.Enabled = isFinished));
+
+            menuStrip1.Invoke(new Action(() =>
+                xyzStageToolStripMenuItem.Enabled = isFinished));
         }
 
         #endregion
