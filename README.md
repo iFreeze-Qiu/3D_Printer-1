@@ -3,7 +3,8 @@
 
 Version 1.0 of Force Feedback System for 3D Printer
 
-A thorough user documentation file can be found here: https://www.dropbox.com/s/3lfdkf1q8zei6io/UserDoc.html?dl=0. This file goes in depth on how to use the program with the hardware itself.
+A thorough user documentation file can be found here: http://www.robertjdac.net/3d-printer-user-documentation.html
+This file goes in depth on how to use the program with the hardware itself.
 
 Overview of Project
 ==========
